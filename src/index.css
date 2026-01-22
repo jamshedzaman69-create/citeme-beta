@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Zen Editor Typography & Page Breaks */
+.zen-editor-container {
+  position: relative;
+}
+
+/* Multiple page breaks for long documents */
+.zen-editor-container::before,
+.zen-editor-container::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  border-top: 1px dashed #e2e8f0;
+  pointer-events: none;
+}
+
+.zen-editor-container::before {
+  top: 3000px;
+}
+
+.zen-editor-container::after {
+  top: 6000px;
+}
+
+.zen-editor {
+  font-family: Georgia, 'Source Serif Pro', Charter, serif;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #1e293b;
+}
+
+/* Style all editor content */
+.zen-editor p,
+.zen-editor div,
+.zen-editor span,
+.zen-editor li {
+  font-family: Georgia, 'Source Serif Pro', Charter, serif;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.zen-editor h1,
+.zen-editor h2,
+.zen-editor h3,
+.zen-editor h4,
+.zen-editor h5,
+.zen-editor h6 {
+  font-family: Georgia, 'Source Serif Pro', Charter, serif;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.zen-editor h1 {
+  font-size: 2.25rem;
+}
+
+.zen-editor h2 {
+  font-size: 1.875rem;
+}
+
+.zen-editor h3 {
+  font-size: 1.5rem;
+}
+
+/* Tiptap Editor Styling */
+.ProseMirror {
+  font-family: Georgia, 'Source Serif Pro', Charter, serif !important;
+  font-size: 18px !important;
+  line-height: 1.8 !important;
+  color: #1e293b !important;
+  outline: none !important;
+}
+
+.ProseMirror p {
+  margin-bottom: 1em;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3 {
+  font-family: Georgia, 'Source Serif Pro', Charter, serif;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.ProseMirror h1 {
+  font-size: 2.25rem;
+}
+
+.ProseMirror h2 {
+  font-size: 1.875rem;
+}
+
+.ProseMirror h3 {
+  font-size: 1.5rem;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1em;
+}
+
+.ProseMirror blockquote {
+  border-left: 4px solid #e2e8f0;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #64748b;
+  margin: 1.5rem 0;
+}
+
+.ProseMirror code {
+  background-color: #f1f5f9;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.ProseMirror pre {
+  background-color: #f1f5f9;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Placeholder styling */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #cbd5e1;
+  pointer-events: none;
+  height: 0;
+}
+
+/* AI Autocomplete suggestion styling */
+.ProseMirror .ai-suggestion {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Additional CSS layers for page breaks in very long documents */
+@supports (selector(:has(*))) {
+  .zen-editor-container:has(.zen-editor) {
+    background-image:
+      linear-gradient(transparent 2999px, #e2e8f0 3000px, transparent 3001px),
+      linear-gradient(transparent 5999px, #e2e8f0 6000px, transparent 6001px),
+      linear-gradient(transparent 8999px, #e2e8f0 9000px, transparent 9001px),
+      linear-gradient(transparent 11999px, #e2e8f0 12000px, transparent 12001px);
+    background-repeat: no-repeat;
+    background-size: 80% 1px;
+    background-position: center;
+  }
+}
+
+/* Smooth scrolling for the whole document */
+.zen-editor-container,
+.zen-editor {
+  scroll-behavior: smooth;
+}
+
+/* Chat drawer animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
