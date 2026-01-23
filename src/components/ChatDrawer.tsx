@@ -74,76 +74,82 @@ export default function ChatDrawer({ isOpen, onClose, documentContent, documentT
   if (!isOpen) return null;
 
   return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
-        onClick={onClose}
-      />
+    /* REMOVED: The fixed black/20 overlay div that was blurring the background.
+       CHANGED: The container to a relative/flex sidebar that sits inside the flex row 
+       defined in DocumentEditor.
+    */
+    <div className="flex flex-col w-96 h-full bg-white border-l border-slate-200 shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.05)] z-40">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">Research Assistant</h2>
+          <p className="text-[10px] text-slate-400 uppercase tracking-wider">Powered by CiteMe AI</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-slate-50 rounded-lg transition-colors group"
+        >
+          <X className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+        </button>
+      </div>
 
-      <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-light text-slate-900">Chat</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 custom-scrollbar">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <X className="w-5 h-5 text-slate-600" />
+            <div
+              className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                message.role === 'user'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+                  : 'bg-slate-100 text-slate-800 border border-slate-200/50'
+              }`}
+            >
+              <p className="text-xs leading-relaxed whitespace-pre-wrap">
+                {message.content}
+              </p>
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-slate-100 rounded-2xl px-4 py-3">
+              <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 bg-slate-50/50 border-t border-slate-100">
+        <div className="relative flex items-center">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+            placeholder="Ask CiteMe AI about this paper..."
+            className="w-full pl-4 pr-12 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-xs transition-all placeholder:text-slate-400"
+            disabled={loading}
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            className="absolute right-2 p-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-slate-900 transition-all shadow-sm"
+          >
+            <Send className="w-4 h-4" />
           </button>
         </div>
-
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
-                  message.role === 'user'
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-900'
-                }`}
-              >
-                <p className="text-sm font-light leading-relaxed whitespace-pre-wrap">
-                  {message.content}
-                </p>
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-slate-100 rounded-2xl px-4 py-2.5">
-                <Loader2 className="w-4 h-4 text-slate-600 animate-spin" />
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <div className="border-t border-slate-200 px-6 py-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder="Send a message..."
-              className="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent text-sm font-light"
-              disabled={loading}
-            />
-            <button
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className="p-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          </div>
-          <p className="text-xs text-slate-400 mt-2 font-light">
-            I can help answer questions about your document
-          </p>
+        <div className="mt-3 flex items-center justify-center gap-2">
+           <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
+           <p className="text-[10px] text-slate-400 font-medium italic">
+             CiteMe is analyzing your document context
+           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }

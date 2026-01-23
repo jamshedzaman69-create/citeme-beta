@@ -135,10 +135,10 @@ export default function DocumentList({
         ) : (
           <div className="space-y-1">
             {documents.map((doc) => (
-              <button
+              <div
                 key={doc.id}
                 onClick={() => onSelectDocument(doc.id)}
-                className={`w-full text-left px-3 py-2.5 rounded-md transition-all group ${
+                className={`w-full text-left px-3 py-2.5 rounded-md transition-all group cursor-pointer ${
                   selectedDocumentId === doc.id
                     ? 'bg-slate-800 bg-opacity-20 text-slate-900'
                     : 'text-slate-600 hover:bg-slate-800 hover:bg-opacity-10'
@@ -162,7 +162,7 @@ export default function DocumentList({
                     <Trash2 className="w-3.5 h-3.5 text-slate-500" />
                   </button>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
