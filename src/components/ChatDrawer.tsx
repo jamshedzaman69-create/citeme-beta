@@ -17,7 +17,7 @@ export default function ChatDrawer({ isOpen, onClose, documentContent, documentT
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi, I'm Lex. How can I help you with "${documentTitle}"?`
+      content: `Hi, I'm CiteMe AI Assistant. How can I help you with "${documentTitle}"?`
     }
   ]);
   const [input, setInput] = useState('');
