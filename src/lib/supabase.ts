@@ -9,14 +9,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export type Profile = {
+export interface Profile {
   id: string;
   email: string;
-  full_name: string;
-  avatar_url?: string;
-  created_at: string;
-  updated_at: string;
-};
+  full_name: string | null;
+  avatar_url: string | null;
+  // Subscription fields
+  subscription_status: string | null;     // 'active', 'trialing', etc.
+  subscription_interval: string | null;   // 'week', 'month'
+  current_period_end: string | null;      // From your current schema
+  trial_ends_at: string | null;           // The new column you added
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+}
 
 export type Document = {
   id: string;

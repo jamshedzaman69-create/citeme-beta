@@ -7,6 +7,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
+  hasPremium: boolean; // Add this line
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -19,6 +20,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Logic to determine if the user has premium access
+  const hasPremium = (() => {
+    if (!profile) return false;
+
+    const now = new Date();
+
+    // 1. Check if Stripe subscription is active and within the valid period
+    const isStripeActive = 
+      profile.subscription_status === 'active' && 
+      profile.current_period_end && 
+      new Date(profile.current_period_end) > now;
+
+    // 2. Check if the 3-day free trial is still valid
+    const isTrialActive = 
+      profile.trial_ends_at && 
+      new Date(profile.trial_ends_at) > now;
+
+    return !!(isStripeActive || isTrialActive);
+  })();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -109,12 +130,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      // Change scope to 'local' to avoid global 403/400 errors
       await supabase.auth.signOut({ scope: 'local' });
     } catch (err) {
       console.error('Sign out error:', err);
     } finally {
-      // Force clear local state even if the server request fails
       setUser(null);
       setProfile(null);
       setSession(null);
@@ -128,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         session,
         loading,
+        hasPremium, // Pass the premium status here
         signUp,
         signIn,
         signOut,

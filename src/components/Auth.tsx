@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FileText, ArrowLeft, Loader2, Mail } from 'lucide-react';
+import { Quote, ArrowLeft, Loader2, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+interface AuthProps {
+  initialMode?: 'signin' | 'signup';
+}
+
+export default function Auth({ initialMode = 'signup' }: AuthProps) {
+  const [isLogin, setIsLogin] = useState(initialMode === 'signin');
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [email, setEmail] = useState('');
@@ -14,19 +18,21 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
+  // Sync state if initialMode changes
+  useEffect(() => {
+    setIsLogin(initialMode === 'signin');
+  }, [initialMode]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
       } else {
-        if (!fullName.trim()) {
-          throw new Error('Please enter your full name');
-        }
+        if (!fullName.trim()) throw new Error('Please enter your full name');
         const { error } = await signUp(email, password, fullName);
         if (error) throw error;
       }
@@ -41,7 +47,6 @@ export default function Auth() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -56,147 +61,97 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8 transition-all">
-          <div className="flex items-center justify-center mb-8">
-            <div className="bg-blue-600 p-3 rounded-xl">
-              <FileText className="w-8 h-8 text-white" />
+    <div className="w-full max-w-[360px] bg-white border border-slate-200/60 p-8 rounded-[2rem] shadow-xl shadow-blue-900/5 animate-in fade-in zoom-in duration-500 font-sans">
+      <div className="flex flex-col items-center text-center mb-6">
+        <div className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-100">
+          <Quote className="text-white w-5 h-5 fill-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+          {showResetPassword ? 'Reset Access' : isLogin ? 'Welcome back' : 'Join CiteMe'}
+        </h2>
+        <p className="text-slate-400 text-xs mt-1 font-medium tracking-tight">
+          {showResetPassword ? "We'll send a recovery link" : 'Your research workspace awaits.'}
+        </p>
+      </div>
+
+      {!showResetPassword ? (
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {!isLogin && (
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="text" required={!isLogin} value={fullName} onChange={(e) => setFullName(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-medium placeholder:text-slate-300"
+                placeholder="Full Name"
+              />
             </div>
-          </div>
-
-          {!showResetPassword ? (
-            <>
-              <h2 className="text-3xl font-bold text-center text-slate-900 mb-2">
-                {isLogin ? 'Welcome Back' : 'Create Account'}
-              </h2>
-              <p className="text-center text-slate-600 mb-8">
-                {isLogin ? 'Sign in to access your documents' : 'Start creating amazing documents with AI'}
-              </p>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {!isLogin && (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                      placeholder="John Doe"
-                      required={!isLogin}
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-slate-700">Password</label>
-                    {isLogin && (
-                      <button
-                        type="button"
-                        onClick={() => { setShowResetPassword(true); setError(''); }}
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        Forgot password?
-                      </button>
-                    )}
-                  </div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                  />
-                </div>
-
-                {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors flex justify-center items-center"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? 'Sign In' : 'Sign Up'}
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <button 
-                onClick={() => { setShowResetPassword(false); setResetSent(false); }}
-                className="flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm mb-6 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" /> Back to Sign In
-              </button>
-              
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Reset Password</h2>
-              <p className="text-slate-600 text-sm mb-8">Enter your email and we'll send you a link to reset your password.</p>
-
-              {resetSent ? (
-                <div className="text-center py-4">
-                  <div className="bg-green-100 text-green-700 p-4 rounded-xl mb-6">
-                    Check your email for the reset link!
-                  </div>
-                  <button 
-                    onClick={() => setShowResetPassword(false)}
-                    className="text-blue-600 font-medium hover:underline"
-                  >
-                    Return to login
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleResetPassword} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                      placeholder="you@example.com"
-                    />
-                  </div>
-                  {error && <div className="text-red-600 text-sm">{error}</div>}
-                  <button
-                    disabled={loading}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 flex justify-center items-center"
-                  >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Link'}
-                  </button>
-                </form>
-              )}
-            </>
           )}
 
-          <div className="mt-6 text-center">
-            {!showResetPassword && (
-              <button
-                onClick={() => { setIsLogin(!isLogin); setError(''); }}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-              </button>
+          <div className="relative">
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+              type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-medium placeholder:text-slate-300"
+              placeholder="University Email"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-medium placeholder:text-slate-300"
+                placeholder="Password"
+              />
+            </div>
+            {isLogin && (
+              <div className="flex justify-end pr-1">
+                <button type="button" onClick={() => setShowResetPassword(true)} className="text-[10px] font-bold text-blue-600/70 hover:text-blue-600 transition-colors">
+                  Forgot password?
+                </button>
+              </div>
             )}
           </div>
+
+          {error && <div className="p-2.5 bg-red-50 text-red-600 rounded-xl text-[10px] font-bold text-center border border-red-100">{error}</div>}
+
+          <button
+            type="submit" disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-blue-200 disabled:opacity-50 active:scale-[0.98]"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+              <>{isLogin ? 'Sign In' : 'Get Started'} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+            )}
+          </button>
+        </form>
+      ) : (
+        <div className="space-y-4">
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none" placeholder="you@university.edu" />
+            </div>
+            <button disabled={loading} className="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all flex justify-center items-center">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send Link'}
+            </button>
+            <button type="button" onClick={() => setShowResetPassword(false)} className="w-full text-slate-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 pt-1">
+              <ArrowLeft className="w-3 h-3" /> Back
+            </button>
+          </form>
         </div>
-      </div>
+      )}
+
+      {!showResetPassword && (
+        <div className="mt-6 pt-6 border-t border-slate-50 text-center">
+          <p className="text-slate-400 text-xs font-medium">
+            {isLogin ? "New to CiteMe?" : "Already a member?"}{' '}
+            <button onClick={() => setIsLogin(!isLogin)} className="text-blue-600 font-bold hover:underline underline-offset-4 decoration-2 transition-all">
+              {isLogin ? 'Sign up' : 'Sign in'}
+            </button>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
