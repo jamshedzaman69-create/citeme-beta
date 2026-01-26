@@ -87,7 +87,7 @@ export default function LandingPage() {
             Write research papers <br/><span className="text-blue-600">faster than ever.</span>
           </h1>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
-            Automate citations, structure your thesis, and write with academic precision. 
+            Generate citations, structure your thesis, and write with academic precision. 
             The intelligent partner for modern scholars.
           </p>
           <div className="flex flex-col items-center gap-6">
@@ -136,7 +136,7 @@ export default function LandingPage() {
               name="Weekly" 
               price="2.50" 
               period="week" 
-              features={["3-Day Trial", "Full AI Access", "Auto-Citations"]} 
+              features={["3-Day Trial", "AI Access", "Unlimited Documents", "Citations Generator"]} 
               onSelect={() => handleUpgradeFromPricing(WEEKLY_ID)} 
             />
             <PricingCard 
@@ -144,7 +144,7 @@ export default function LandingPage() {
               price="7.00" 
               period="month" 
               popular 
-              features={["3-Day Trial", "Everything in Weekly", "Priority AI Support"]} 
+              features={["3-Day Trial", "Everything in Weekly", "Advanced AI features", "Priority Support"]} 
               onSelect={() => handleUpgradeFromPricing(MONTHLY_ID)} 
             />
           </div>
@@ -176,7 +176,7 @@ export default function LandingPage() {
         <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center mx-auto mb-6">
           <Quote className="w-4 h-4 text-white fill-white" />
         </div>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em]">&copy; 2026 CiteMe Intelligence Systems</p>
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em]">&copy; 2026 CiteMe</p>
       </footer>
 
       {loading && (

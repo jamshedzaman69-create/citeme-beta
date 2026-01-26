@@ -62,18 +62,6 @@ const MenuBar = ({ editor, handleAddCitation }: MenuBarProps) => {
       })}
 
       {/* Simplified AI Citation Button pushed to the right */}
-      <div className="ml-auto">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            handleAddCitation();
-          }}
-          className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all shadow-sm group"
-        >
-          <Sparkles className="w-3.5 h-3.5 group-hover:animate-pulse" />
-          <span className="text-xs font-semibold">Cite with AI</span>
-        </button>
-      </div>
     </div>
   );
 };

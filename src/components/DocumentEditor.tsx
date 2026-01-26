@@ -10,6 +10,10 @@ import CitationPanel from './CitationPanel';
 import ChatDrawer from './ChatDrawer';
 import AIBubbleMenu from './AIBubbleMenu';
 import MenuBar from './MenuBar';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
 
 interface DocumentEditorProps {
   documentId: string;
