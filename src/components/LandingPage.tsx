@@ -61,6 +61,12 @@ export default function LandingPage() {
             <span className="text-xl font-bold tracking-tight">CiteMe</span>
           </div>
           <div className="flex items-center gap-8">
+          <a 
+           href="mailto:jamshedzaman16@gmail.com"
+          className="text-gray-600 hover:text-indigo-600 font-medium transition-colors text-sm"
+           >
+         Contact Us
+         </a>
             <button 
               onClick={() => openAuth('signin')} 
               className="text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors"
@@ -172,12 +178,46 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="py-16 text-center opacity-40">
-        <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center mx-auto mb-6">
-          <Quote className="w-4 h-4 text-white fill-white" />
+{/* Replace existing footer with this */}
+<footer className="py-20 bg-white border-t border-slate-100">
+  <div className="max-w-7xl mx-auto px-6">
+    <div className="grid md:grid-cols-4 gap-12 mb-16 text-left">
+      <div className="col-span-2">
+        <div className="flex items-center gap-2.5 mb-6">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
+            <Quote className="w-4 h-4 text-white fill-white" />
+          </div>
+          <span className="text-lg font-bold tracking-tight">CiteMe</span>
         </div>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em]">&copy; 2026 CiteMe</p>
-      </footer>
+        <p className="text-slate-500 max-w-xs leading-relaxed italic">
+          Empowering scholars with AI-driven academic precision and integrity.
+        </p>
+      </div>
+      <div>
+        <h4 className="font-bold mb-6 text-sm uppercase tracking-widest text-slate-900">Legal</h4>
+        <ul className="space-y-4 text-sm text-slate-500 font-medium">
+          <li><a href="/terms" className="hover:text-blue-600 transition-colors">Terms of Service</a></li>
+          <li><a href="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</a></li>
+          <li><a href="/terms#refunds" className="hover:text-blue-600 transition-colors">Refund Policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-bold mb-6 text-sm uppercase tracking-widest text-slate-900">Support</h4>
+        <ul className="space-y-4 text-sm text-slate-500 font-medium">
+          <li><a href="mailto:jamshedzaman16@gmail.com" className="hover:text-blue-600 transition-colors text-xs font-bold uppercase tracking-widest">jamshedzaman16@gmail.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div className="pt-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">&copy; 2026 CiteMe. All rights reserved.</p>
+      <div className="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <span>GDPR Compliant</span>
+        <div className="w-1 h-1 bg-slate-200 rounded-full" />
+        <span>SSL Secured</span>
+      </div>
+    </div>
+  </div>
+</footer>
 
       {loading && (
         <div className="fixed inset-0 bg-white/60 backdrop-blur-md flex items-center justify-center z-[100]">

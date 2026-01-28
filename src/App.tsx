@@ -1,6 +1,8 @@
 import { useEffect } from 'react'; //
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext'; //
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import { useParams } from 'react-router-dom'; //
 import { supabase } from './lib/supabase'; //
 
@@ -36,6 +38,8 @@ function AppContent() {
 
   return (
     <Routes>
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       {!user ? ( //
         <Route path="*" element={<LandingPage />} />
       ) : (
@@ -43,7 +47,7 @@ function AppContent() {
           <Route path="/dashboard" element={<Dashboard />} /> //
           <Route path="/settings" element={<SettingsPage />} /> //
           <Route path="/document/:id" element={<DocumentEditorWrapper />} /> //
-          <Route path="/reset-password" element={<ResetPassword />} /> {/* Add this route */} //
+          <Route path="/reset-password" element={<ResetPassword />} /> {/*  */} //
           
           <Route path="/" element={<Navigate to="/dashboard" replace />} /> //
           <Route path="*" element={<Navigate to="/dashboard" replace />} /> //
