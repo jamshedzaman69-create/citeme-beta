@@ -147,7 +147,7 @@ export default function LandingPage() {
             />
             <PricingCard 
               name="Monthly" 
-              price="7.00" 
+              price="7.99" 
               period="month" 
               popular 
               features={["3-Day Trial", "Everything in Weekly", "Advanced AI features", "Priority Support"]} 

@@ -9,15 +9,26 @@ export function PricingSection() {
   const handleUnlock = async (priceId: string) => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // Get session to ensure we are targeting the local instance
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert("Please sign in to upgrade.");
+        return;
+      }
 
-      const { data } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId, userId: user.id, userEmail: user.email }
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          priceId, 
+          userId: session.user.id, 
+          userEmail: session.user.email 
+        }
       });
+
+      if (error) throw error;
       if (data?.url) window.location.href = data.url;
     } catch (err) {
-      console.error(err);
+      console.error("Checkout Error:", err);
     } finally {
       setLoading(false);
     }
@@ -25,47 +36,27 @@ export function PricingSection() {
 
   return (
     <div className="space-y-8">
-      {/* Mini Feature List */}
-      <div className="flex flex-wrap justify-center gap-4 text-slate-600">
-        {[
-          { icon: Zap, label: "Unlimited AI Assist" },
-          { icon: Shield, label: "Academic Citations" },
-          { icon: Crown, label: "Cloud Syncing" }
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-100 text-xs font-medium shadow-sm">
-            <item.icon className="w-3 h-3 text-blue-500" />
-            {item.label}
-          </div>
-        ))}
-      </div>
-
-      {/* Grid */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="transform transition-all hover:scale-[1.01]">
-          <PricingCard 
-            name="Weekly" 
-            price="2.50" 
-            period="week" 
-            features={["3-Day Free Trial", "Full AI Access", "Academic Citations"]} 
-            onSelect={() => handleUnlock('price_1Rps0cL8ugzqmcpsuB2b156s')} 
-          />
-        </div>
-        <div className="transform transition-all hover:scale-[1.01]">
-          <PricingCard 
-            name="Monthly" 
-            price="7.00" 
-            period="month" 
-            popular 
-            features={["3-Day Free Trial", "Best Student Value", "Priority Support"]} 
-            onSelect={() => handleUnlock('price_1Rps11L8ugzqmcpsJsXf1PB2')} 
-          />
-        </div>
+        <PricingCard 
+          name="Weekly" 
+          price="2.50" 
+          period="week" 
+          features={["3-Day Free Trial", "AI Access", "Unlimited Documents", "Citations Generator"]} 
+          onSelect={() => handleUnlock(import.meta.env.VITE_STRIPE_WEEKLY_PRICE_ID)} 
+        />
+        <PricingCard 
+          name="Monthly" 
+          price="7.99" 
+          period="month" 
+          popular
+          features={["3-Day Free Trial", "Everything in Weekly", "Advanced AI features", "Priority Support"]} 
+          onSelect={() => handleUnlock(import.meta.env.VITE_STRIPE_MONTHLY_PRICE_ID)} 
+        />
       </div>
 
       {loading && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-[100]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-          <p className="text-[10px] font-bold text-slate-900 uppercase tracking-tighter">Initializing Secure Checkout...</p>
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       )}
     </div>

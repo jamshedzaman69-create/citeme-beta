@@ -42,7 +42,7 @@ export function PricingCard({
         ))}
       </ul>
       <button 
-        onClick={onSelect} // Add the onClick handler here
+        onClick={onSelect} 
         className={`w-full py-3 rounded-lg font-medium transition-colors ${
           popular 
             ? 'bg-blue-600 text-white hover:bg-blue-700' 
