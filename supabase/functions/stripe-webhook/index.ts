@@ -2,10 +2,14 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import Stripe from 'https://esm.sh/stripe@12.0.0?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Initialize Stripe with the Fetch API for Deno compatibility
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2022-11-15',
   httpClient: Stripe.createFetchHttpClient(),
 })
+
+// Initialize the SubtleCryptoProvider to fix the synchronous context error
+const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
 const supabaseClient = createClient(
   Deno.env.get('SUPABASE_URL') || '',
@@ -23,22 +27,28 @@ serve(async (req) => {
   try {
     const body = await req.text()
     
-    // Using constructEventAsync is safer for the Deno runtime
+    // Use constructEventAsync with the cryptoProvider
     const event = await stripe.webhooks.constructEventAsync(
       body,
       signature,
-      webhookSecret
+      webhookSecret,
+      undefined,
+      cryptoProvider
     )
 
     console.log(`🔔 Webhook received: ${event.type}`)
 
-    if (event.type === 'checkout.session.completed') {
+    // Handle both checkout.session.completed and invoice.paid for trials
+    if (event.type === 'checkout.session.completed' || event.type === 'invoice.paid') {
       const session = event.data.object
-      const userId = session.client_reference_id
+      
+      // Get the userId from client_reference_id (set during checkout creation)
+      // If invoice.paid, the ID might be in customer_details or metadata
+      const userId = session.client_reference_id || session.metadata?.supabase_user_id
 
       if (!userId) {
-        console.error("❌ No userId (client_reference_id) found in session")
-        return new Response('No User ID found', { status: 400 })
+        console.error("❌ No userId found in session metadata or client_reference_id")
+        return new Response('No User ID found', { status: 200 }) // Return 200 to stop Stripe retries if logic error
       }
 
       console.log(`✅ Updating subscription for User: ${userId}`)
