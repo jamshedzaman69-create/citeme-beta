@@ -61,10 +61,11 @@ export default function Dashboard() {
         }
         
         // 3. UI STATE: Determine if we show the paywall
-        if (!actuallyPremium && !pendingPriceId) {
-          setShowUnlock(true);
-        } else if (actuallyPremium) {
+        if (actuallyPremium) {
           setShowUnlock(false);
+        } else {
+          // If they aren't premium, they MUST see the unlock/pricing screen
+          setShowUnlock(true);
         }
 
       } catch (err) {

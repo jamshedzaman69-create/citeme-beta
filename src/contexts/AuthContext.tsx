@@ -7,7 +7,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  hasPremium: boolean; // Add this line
+  hasPremium: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -21,25 +21,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Logic to determine if the user has premium access
   const hasPremium = (() => {
     if (!profile) return false;
-
     const now = new Date();
-
-    // 1. Check if Stripe subscription is active and within the valid period
-    const isStripeActive = 
-      profile.subscription_status === 'active' && 
-      profile.current_period_end && 
-      new Date(profile.current_period_end) > now;
-
-    // 2. Check if the 3-day free trial is still valid
-    const isTrialActive = 
-      profile.trial_ends_at && 
-      new Date(profile.trial_ends_at) > now;
-
+    const isStripeActive = profile.subscription_status === 'active' && 
+                           profile.current_period_end && 
+                           new Date(profile.current_period_end) > now;
+    const isTrialActive = profile.trial_ends_at && 
+                          new Date(profile.trial_ends_at) > now;
     return !!(isStripeActive || isTrialActive);
   })();
+
+  const loadProfile = async (userId: string, retryCount = 0) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      // If no profile yet, retry up to 3 times (waits for DB triggers)
+      if (!data && retryCount < 3) {
+        setTimeout(() => loadProfile(userId, retryCount + 1), 1000);
+        return;
+      }
+
+      setProfile(data);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,59 +68,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      (async () => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await loadProfile(session.user.id);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      })();
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
         password,
+        options: { data: { full_name: fullName } } // Store in metadata too
       });
 
       if (error) throw error;
 
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              email: data.user.email!,
-              full_name: fullName,
-            },
-          ]);
+        const newProfile: Profile = {
+          id: data.user.id,
+          email: data.user.email!,
+          full_name: fullName,
+          subscription_status: 'inactive',
+          created_at: new Date().toISOString()
+        };
 
+        const { error: profileError } = await supabase.from('profiles').insert([newProfile]);
         if (profileError) throw profileError;
+
+        // CRITICAL: Set state manually so PricingSection appears instantly
+        setProfile(newProfile);
       }
 
       return { error: null };
@@ -116,11 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return { error: null };
     } catch (error) {
@@ -129,35 +124,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch (err) {
-      console.error('Sign out error:', err);
-    } finally {
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-    }
+    setUser(null);
+    setProfile(null);
+    setSession(null);
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        session,
-        loading,
-        hasPremium, // Pass the premium status here
-        signUp,
-        signIn,
-        signOut,
-      }}
-    >
+    <AuthContext.Provider value={{ user, profile, session, loading, hasPremium, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
+// Ensure this is the only other export to keep Vite happy
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
